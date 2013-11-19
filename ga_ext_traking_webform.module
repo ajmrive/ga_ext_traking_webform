@@ -63,7 +63,7 @@ function ga_ext_traking_webform_form_alter(&$form, &$form_state, $form_id) {
         foreach ($webform_nodes_in_page as $key => $values) {
             if (($values->type == 'webform') && ('webform_client_form_' . $values->uid == $form_id)) {
                 $form['actions']['submit']['#attributes'] = array(
-                    'onclick' => "gaq.push(['_trackEvent', 'webform', 'submit', '" . $values->title . "']);"
+                    'onclick' => "_gaq.push(['_trackEvent', 'webform', 'submit', '" . $values->title . "']);"
                 );
                 //debug($form['actions']['submit']);
             }
