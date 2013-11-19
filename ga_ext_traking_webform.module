@@ -1,0 +1,110 @@
+<?php
+
+//To use all const
+ module_load_include('install', 'ga_ext_traking_webform', 'ga_ext_traking_webform');
+
+//to declare unique id to var of the module
+DEFINE('GA_EXT_TRAKING_WEBFORM_NAMESPACE', 'ga_ext_traking_webform');
+
+//for saved loaded node of type webform
+DEFINE('GA_EXT_TRAKING_WEBFORM_NODE_LOADED', GA_EXT_TRAKING_WEBFORM_NAMESPACE . '::actual_webform_loaded');
+
+//for enable or not ga analytics
+DEFINE('GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING', GA_EXT_TRAKING_WEBFORM_NAMESPACE . '::enable_ga_traking_submit');
+
+//form id of the ga configutarion form
+DEFINE('GA_FORM_CONFIGURATION_ID', 'googleanalytics_admin_settings_form');
+
+//form element in group
+DEFINE('GA_FORM_ELEMENTS_SETTINGS', 'googleanalytics_webform');
+
+/**
+ * To capture in vars the nodes of type webform after the load of the webform
+ * @param type $nodes
+ * @param type $types
+ */
+function ga_ext_traking_webform_node_load($nodes, $types) {
+    //if the traking disable return
+    if (variable_get(GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING, false)) {
+        variable_set(GA_EXT_TRAKING_WEBFORM_NODE_LOADED, $nodes);
+    }
+    
+}
+
+/**
+ * Alter forms, one for the configuration, an the other to include the ga event
+ * @param string $form
+ * @param type $form_state
+ * @param type $form_id
+ * @return string
+ */
+function ga_ext_traking_webform_form_alter(&$form, &$form_state, $form_id) {
+
+    if ($form_id == GA_FORM_CONFIGURATION_ID) {
+        //to alter the configuration of ga anyltics 
+        ga_ext_traking_webform_form_settings($form, $form_state);
+    } else {
+
+        //if the traking disable return
+        if (!variable_get(GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING, false)) {
+            return $form;
+        }
+
+        //webform loaded
+        $webform_nodes_in_page = variable_get(GA_EXT_TRAKING_WEBFORM_NODE_LOADED, array());
+
+        //if there any webform loaded return
+        if ($webform_nodes_in_page == array()) {
+            return $form;
+        }
+
+        //for all node loaded, if is type webform, and the uid form is equal to form_id
+        //we want include the ga event
+        foreach ($webform_nodes_in_page as $key => $values) {
+            if (($values->type == 'webform') && ('webform_client_form_' . $values->uid == $form_id)) {
+                $form['actions']['submit']['#attributes'] = array(
+                    'onclick' => "gaq.push(['_trackEvent', 'webform', 'submit', '" . $values->title . "']);"
+                );
+                //debug($form['actions']['submit']);
+            }
+        }
+        return $form;
+    }
+}
+
+/**
+ * Form to add the form for enable the webform traking
+ * @param type $form_element
+ * @param type $form_state
+ */
+function ga_ext_traking_webform_form_settings(&$form, &$form_state) {
+
+    $default_value = variable_get(GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING, false);
+
+    $form_element = &$form['tracking'];
+
+    $form_element[GA_FORM_ELEMENTS_SETTINGS] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Webform'),
+        GA_FORM_ELEMENTS_SETTINGS . '_enable' =>
+        array(
+            '#type' => 'checkbox',
+            '#title' => t('Enable webform traking on submit'),
+            '#description' => t('If you enable this, all webform submit will be traking'),
+            '#default_value' => $default_value,
+            '#disabled' => false,
+        ),
+    );
+
+    $form['#submit'][] = 'ga_ext_traking_webform_form_settings_submit';
+}
+
+/**
+ * Save the value in the custom var for enable traking
+ * @param type $form
+ * @param type $form_state
+ */
+function ga_ext_traking_webform_form_settings_submit($form, &$form_state) {
+    $submit_value = $form_state['values'][GA_FORM_ELEMENTS_SETTINGS . '_enable'];
+    variable_set(GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING, $submit_value);
+}

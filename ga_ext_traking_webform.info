@@ -1,0 +1,12 @@
+name = Google Analytics Webform
+description = Allows your site to be tracked by Google Analytics by adding a Javascript tracking code to webform submits.
+core = 7.x
+package = Statistics
+dependencies[] = webform
+dependencies[] = googleanalytics
+files[] = ga_ext_traking_webform.module
+
+; Information added by drupal.org packaging script on 2013-10-17
+version = "7.x-0.1"
+core = "7.x"
+

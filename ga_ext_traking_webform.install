@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function ga_ext_traking_webform_install() {
+    variable_set(GA_EXT_TRAKING_WEBFORM_NODE_LOADED, array());
+    variable_set(GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING, FALSE);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ga_ext_traking_webform_uninstall() {
+    variable_del(GA_EXT_TRAKING_WEBFORM_ENABLE_TRAKING);
+    variable_del(GA_EXT_TRAKING_WEBFORM_NODE_LOADED);
+}
